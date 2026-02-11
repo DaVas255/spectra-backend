@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { verify } from 'argon2';
 import { Response } from 'express';
 import { AuthDto } from './dto/auth.dto';
+import { EmailVerificationService } from './email-verification.service';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -18,14 +20,23 @@ export class AuthService {
   constructor(
     private jwt: JwtService,
     private userService: UserService,
+    private emailVerificationService: EmailVerificationService,
   ) {}
 
   async login(dto: AuthDto) {
-    const { password, ...user } = await this.validateUser(dto);
+    const user = await this.validateUser(dto);
+
+    if (!user.isEmailVerified) {
+      throw new ForbiddenException(
+        'Пожалуйста, подтвердите ваш email перед входом',
+      );
+    }
+
+    const { password, ...userWithoutPassword } = user;
     const tokens = await this.issueTokens(user.id);
 
     return {
-      user,
+      user: userWithoutPassword,
       ...tokens,
     };
   }
@@ -35,13 +46,19 @@ export class AuthService {
 
     if (oldUser) throw new BadRequestException('User already exists');
 
-    const { password, ...user } = await this.userService.create(dto);
+    const user = await this.userService.create(dto);
 
-    const tokens = await this.issueTokens(user.id);
+    await this.emailVerificationService.sendVerificationEmail(
+      user.id,
+      user.email,
+    );
+
+    const { password, ...userWithoutPassword } = user;
 
     return {
-      user,
-      ...tokens,
+      user: userWithoutPassword,
+      message:
+        'Регистрация успешна. Пожалуйста, проверьте ваш email для подтверждения аккаунта.',
     };
   }
 
@@ -52,6 +69,10 @@ export class AuthService {
     const user = await this.userService.getById(result.id);
 
     if (!user) throw new UnauthorizedException('User not found');
+
+    if (!user.isEmailVerified) {
+      throw new ForbiddenException('Пожалуйста, подтвердите ваш email');
+    }
 
     const tokens = await this.issueTokens(user.id);
 
