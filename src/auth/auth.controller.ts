@@ -97,6 +97,7 @@ export class AuthController {
 		return this.userService.getById(id)
 	}
 
+	@Auth()
 	@Get('users')
 	async getList() {
 		return this.userService.getUsers()

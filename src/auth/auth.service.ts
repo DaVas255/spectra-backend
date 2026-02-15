@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	BadRequestException,
 	ForbiddenException,
@@ -9,8 +8,8 @@ import { JwtService } from '@nestjs/jwt'
 import { verify } from 'argon2'
 import { Response } from 'express'
 import { AuthDto } from './dto/auth.dto'
-import { EmailVerificationService } from './email-verification.service'
 import { UserService } from './user.service'
+import { EmailVerificationService } from './email-verification.service'
 
 @Injectable()
 export class AuthService {
@@ -90,7 +89,7 @@ export class AuthService {
 		})
 
 		const refreshToken = this.jwt.sign(data, {
-			expiresIn: '7d'
+			expiresIn: '14h'
 		})
 
 		return { accessToken, refreshToken }
