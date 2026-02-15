@@ -3,7 +3,6 @@ import {
 	Controller,
 	Get,
 	HttpCode,
-	Param,
 	Post,
 	Req,
 	Res,
@@ -14,8 +13,10 @@ import {
 import type { Request, Response } from 'express'
 import { AuthService } from './auth.service'
 import { Auth } from './decorators/auth.decorator'
+import { CurrentUser } from './decorators/current-user.decorator'
 import { AuthDto } from './dto/auth.dto'
 import { ResendVerificationDto } from './dto/email-verification.dto'
+import { VerifyEmailDto } from './dto/verify-email.dto'
 import { EmailVerificationService } from './email-verification.service'
 import { UserService } from './user.service'
 
@@ -45,9 +46,11 @@ export class AuthController {
 		return this.authService.register(dto)
 	}
 
-	@Get('verify-email/:token')
-	async verifyEmail(@Param('token') token: string) {
-		return this.emailVerificationService.verifyEmail(token)
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
+	@Post('verify-email')
+	async verifyEmail(@Body() dto: VerifyEmailDto) {
+		return this.emailVerificationService.verifyEmail(dto.token)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -90,7 +93,7 @@ export class AuthController {
 
 	@Auth()
 	@Get('profile')
-	async getProfile(id: number) {
+	async getProfile(@CurrentUser('id') id: number) {
 		return this.userService.getById(id)
 	}
 

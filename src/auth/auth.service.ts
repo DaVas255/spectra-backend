@@ -44,7 +44,7 @@ export class AuthService {
 	async register(dto: AuthDto) {
 		const oldUser = await this.userService.getByEmail(dto.email)
 
-		if (oldUser) throw new BadRequestException('User already exists')
+		if (oldUser) throw new BadRequestException('Пользователь уже существует')
 
 		const user = await this.userService.create(dto)
 
@@ -68,7 +68,7 @@ export class AuthService {
 
 		const user = await this.userService.getById(result.id)
 
-		if (!user) throw new UnauthorizedException('User not found')
+		if (!user) throw new UnauthorizedException('Пользователь не найден')
 
 		if (!user.isEmailVerified) {
 			throw new ForbiddenException('Пожалуйста, подтвердите ваш email')
@@ -99,11 +99,12 @@ export class AuthService {
 	private async validateUser(dto: AuthDto) {
 		const user = await this.userService.getByEmail(dto.email)
 
-		if (!user) throw new UnauthorizedException('Email or password invalid')
+		if (!user) throw new UnauthorizedException('Неправильный логин или пароль')
 
 		const isValid = await verify(user.password, dto.password)
 
-		if (!isValid) throw new UnauthorizedException('Email or password invalid')
+		if (!isValid)
+			throw new UnauthorizedException('Неправильный логин или пароль')
 
 		return user
 	}
