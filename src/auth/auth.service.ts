@@ -26,9 +26,10 @@ export class AuthService {
 		const user = await this.validateUser(dto)
 
 		if (!user.isEmailVerified) {
-			throw new ForbiddenException(
-				'Пожалуйста, подтвердите ваш email перед входом'
-			)
+			throw new ForbiddenException({
+				message: 'Пожалуйста, подтвердите ваш email перед входом',
+				email: user.email
+			})
 		}
 
 		const { password, ...userWithoutPassword } = user

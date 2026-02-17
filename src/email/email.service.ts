@@ -50,6 +50,11 @@ export class EmailService {
 			`
 		}
 
-		return this.transporter.sendMail(mailOptions)
+		try {
+			const result = await this.transporter.sendMail(mailOptions)
+			return result
+		} catch (error) {
+			throw error
+		}
 	}
 }

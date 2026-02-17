@@ -1,16 +1,11 @@
-import {
-	Injectable,
-	BadRequestException,
-	HttpException,
-	HttpStatus
-} from '@nestjs/common'
+import { Injectable, BadRequestException, Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { PrismaService } from 'src/prisma.service'
 import { EmailService } from '../email/email.service'
 
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 1
-const RESEND_COOLDOWN_MINUTES = 2
-const MAX_VERIFICATION_ATTEMPTS = 3
+const RESEND_COOLDOWN_MINUTES = 1
+const MAX_VERIFICATION_ATTEMPTS = 5
 
 @Injectable()
 export class EmailVerificationService {
@@ -20,25 +15,7 @@ export class EmailVerificationService {
 	) {}
 
 	async generateVerificationToken(userId: number): Promise<string> {
-		let token: string
-		let existingUser: any
-		let attempts = 0
-		const maxAttempts = 10
-
-		do {
-			token = crypto.randomBytes(32).toString('hex')
-			existingUser = await this.prisma.user.findUnique({
-				where: { emailVerificationToken: token }
-			})
-			attempts++
-		} while (existingUser && attempts < maxAttempts)
-
-		if (existingUser) {
-			throw new HttpException(
-				'Failed to generate unique verification token',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
+		const token = crypto.randomBytes(32).toString('hex')
 
 		const expires = new Date()
 		expires.setHours(expires.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS)
@@ -58,6 +35,13 @@ export class EmailVerificationService {
 	async sendVerificationEmail(userId: number, email: string): Promise<void> {
 		const token = await this.generateVerificationToken(userId)
 		await this.emailService.sendVerificationEmail(email, token)
+
+		await this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				lastVerificationEmailSent: new Date()
+			}
+		})
 	}
 
 	async verifyEmail(token: string) {
@@ -129,14 +113,25 @@ export class EmailVerificationService {
 			)
 		}
 
-		await this.sendVerificationEmail(user.id, user.email)
+		if (
+			user.emailVerificationToken &&
+			user.emailVerificationExpires &&
+			user.emailVerificationExpires > new Date()
+		) {
+			await this.emailService.sendVerificationEmail(
+				email,
+				user.emailVerificationToken
+			)
 
-		await this.prisma.user.update({
-			where: { id: user.id },
-			data: {
-				lastVerificationEmailSent: new Date()
-			}
-		})
+			await this.prisma.user.update({
+				where: { id: user.id },
+				data: {
+					lastVerificationEmailSent: new Date()
+				}
+			})
+		} else {
+			await this.sendVerificationEmail(user.id, user.email)
+		}
 
 		return { message: 'Письмо с подтверждением отправлено повторно' }
 	}
