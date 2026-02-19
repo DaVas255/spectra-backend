@@ -9,14 +9,64 @@ datasource db {
 }
 
 model User {
-  id                       Int       @id @default(autoincrement())
-  email                    String    @unique
-  name                     String?
-  password                 String
-  isEmailVerified          Boolean   @default(false)
-  emailVerificationToken   String?   @unique
-  emailVerificationExpires DateTime?
-  verificationAttempts     Int       @default(0)
+  id                        Int           @id @default(autoincrement())
+  email                     String        @unique
+  name                      String?
+  password                  String
+  isEmailVerified           Boolean       @default(false)
+  emailVerificationToken    String?       @unique
+  emailVerificationExpires  DateTime?
+  verificationAttempts      Int           @default(0)
   lastVerificationEmailSent DateTime?
-  createdAt                DateTime  @default(now())
+  createdAt                 DateTime      @default(now())
+  apiKeys                   ApiKey[]
+  trackedSites              TrackedSite[]
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  key       String    @unique
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  isActive  Boolean   @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model TrackedSite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  name      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  errors    Error[]
+
+  @@unique([userId, url])
+}
+
+model Error {
+  id             Int         @id @default(autoincrement())
+  siteId         Int
+  site           TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  fingerprint    String
+  type           String
+  level          String
+  message        String
+  stackTrace     String?
+  fileName       String?
+  lineNumber     Int?
+  columnNumber   Int?
+  url            String
+  userAgent      String?
+  count          Int         @default(1)
+  firstSeenAt    DateTime    @default(now())
+  lastSeenAt     DateTime    @default(now())
+  lastInstanceId String?
+
+  @@index([siteId])
+  @@index([fingerprint])
+  @@index([lastSeenAt])
 }
