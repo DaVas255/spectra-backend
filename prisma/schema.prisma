@@ -70,3 +70,14 @@ model Error {
   @@index([fingerprint])
   @@index([lastSeenAt])
 }
+
+model Event {
+  id        String   @id @default(uuid())
+  type      String
+  payload   Json
+  timestamp DateTime
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([timestamp])
+}
