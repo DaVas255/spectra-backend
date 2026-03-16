@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AuthModule } from './auth/auth.module'
 import { ApiKeyModule } from './api-key/api-key.module'
+import { TrackedSiteModule } from './tracked-site/tracked-site.module'
 
 @Module({
-	imports: [ConfigModule.forRoot(), AuthModule, ApiKeyModule]
+	imports: [ConfigModule.forRoot(), AuthModule, ApiKeyModule, TrackedSiteModule]
 })
 export class AppModule {}

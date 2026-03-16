@@ -39,6 +39,7 @@ model TrackedSite {
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   url       String
+  urlPattern String?
   name      String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
