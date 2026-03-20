@@ -4,7 +4,6 @@ import {
 	Delete,
 	Get,
 	HttpCode,
-	Param,
 	Post,
 	UsePipes,
 	ValidationPipe
@@ -28,13 +27,13 @@ export class ApiKeyController {
 	}
 
 	@Get()
-	getAll(@CurrentUser('id') userId: number) {
-		return this.apiKeyService.getAll(userId)
+	get(@CurrentUser('id') userId: number) {
+		return this.apiKeyService.get(userId)
 	}
 
-	@Delete(':id')
+	@Delete()
 	@HttpCode(204)
-	delete(@CurrentUser('id') userId: number, @Param('id') id: string) {
-		return this.apiKeyService.delete(id, userId)
+	delete(@CurrentUser('id') userId: number) {
+		return this.apiKeyService.deleteByUserId(userId)
 	}
 }
