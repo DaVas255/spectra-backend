@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -17,19 +18,31 @@ import { Auth } from 'src/auth/decorators/auth.decorator'
 import { TrackedSiteService } from './tracked-site.service'
 import { CreateTrackedSiteDto } from './dto/create-tracked-site.dto'
 import { UpdateTrackedSiteDto } from './dto/update-tracked-site.dto'
+import { PrismaService } from 'src/prisma.service'
 
 @Controller('tracked-sites')
 @Auth()
 export class TrackedSiteController {
-	constructor(private readonly trackedSiteService: TrackedSiteService) {}
+	constructor(
+		private readonly trackedSiteService: TrackedSiteService,
+		private prisma: PrismaService
+	) {}
 
 	@Post()
 	@HttpCode(201)
 	@UsePipes(new ValidationPipe())
-	create(
+	async create(
 		@CurrentUser('id') userId: number,
 		@Body() dto: CreateTrackedSiteDto
 	) {
+		const existing = await this.prisma.trackedSite.findFirst({
+			where: { userId, url: dto.url }
+		})
+
+		if (existing) {
+			throw new BadRequestException('Сайт с таким URL уже добавлен')
+		}
+
 		return this.trackedSiteService.create(userId, dto)
 	}
 
@@ -47,11 +60,23 @@ export class TrackedSiteController {
 	}
 
 	@Put(':id')
-	update(
+	async update(
 		@CurrentUser('id') userId: number,
 		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: UpdateTrackedSiteDto
 	) {
+		const duplicate = await this.prisma.trackedSite.findFirst({
+			where: {
+				userId,
+				url: dto.url,
+				id: { not: id }
+			}
+		})
+
+		if (duplicate) {
+			throw new BadRequestException('Сайт с таким URL уже существует')
+		}
+
 		return this.trackedSiteService.update(id, userId, dto)
 	}
 
