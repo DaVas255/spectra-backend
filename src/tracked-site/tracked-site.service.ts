@@ -6,12 +6,15 @@ import { PrismaService } from 'src/prisma.service'
 export class TrackedSiteService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(userId: number, data: {
-		url: string
-		urlPattern?: string
-		name?: string
-		isActive?: boolean
-	}) {
+	async create(
+		userId: number,
+		data: {
+			url: string
+			urlPattern?: string
+			name?: string
+			isActive?: boolean
+		}
+	) {
 		return this.prisma.trackedSite.create({
 			data: {
 				userId,
@@ -42,12 +45,16 @@ export class TrackedSiteService {
 		return site
 	}
 
-	async update(id: number, userId: number, data: {
-		url?: string
-		urlPattern?: string
-		name?: string
-		isActive?: boolean
-	}) {
+	async update(
+		id: number,
+		userId: number,
+		data: {
+			url?: string
+			urlPattern?: string
+			name?: string
+			isActive?: boolean
+		}
+	) {
 		await this.getById(id, userId)
 
 		return this.prisma.trackedSite.update({

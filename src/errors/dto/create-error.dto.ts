@@ -2,21 +2,13 @@ import {
 	IsString,
 	IsOptional,
 	IsNumber,
-	IsEnum,
 	IsArray,
 	ValidateNested,
 	MaxLength
 } from 'class-validator'
 import { Type } from 'class-transformer'
 
-export enum LogLevel {
-	ERROR = 'error',
-	WARNING = 'warning',
-	INFO = 'info',
-	LOG = 'log'
-}
-
-export class LogMetadataDto {
+export class ErrorMetadataDto {
 	@IsOptional()
 	@IsString()
 	userAgent?: string
@@ -34,13 +26,10 @@ export class LogMetadataDto {
 	browser?: string
 }
 
-export class SingleLogDto {
+export class SingleErrorDto {
 	@IsString()
 	@MaxLength(500)
 	url: string
-
-	@IsEnum(LogLevel)
-	level: LogLevel
 
 	@IsString()
 	@MaxLength(5000)
@@ -66,13 +55,13 @@ export class SingleLogDto {
 
 	@IsOptional()
 	@ValidateNested()
-	@Type(() => LogMetadataDto)
-	metadata?: LogMetadataDto
+	@Type(() => ErrorMetadataDto)
+	metadata?: ErrorMetadataDto
 }
 
-export class CreateUserLogDto {
+export class CreateErrorDto {
 	@IsArray()
 	@ValidateNested({ each: true })
-	@Type(() => SingleLogDto)
-	logs: SingleLogDto[]
+	@Type(() => SingleErrorDto)
+	errors: SingleErrorDto[]
 }

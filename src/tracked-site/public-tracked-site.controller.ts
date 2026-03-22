@@ -1,9 +1,4 @@
-import {
-	Controller,
-	Get,
-	Headers,
-	NotFoundException
-} from '@nestjs/common'
+import { Controller, Get, Headers, NotFoundException } from '@nestjs/common'
 
 import { ApiKeyService } from 'src/api-key/api-key.service'
 import { TrackedSiteService } from './tracked-site.service'

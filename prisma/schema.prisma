@@ -35,15 +35,20 @@ model ApiKey {
 }
 
 model TrackedSite {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  url        String
-  urlPattern String?
-  name       String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  errors     Error[]
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url         String
+  urlPattern  String?
+  name        String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  errors      Error[]
+  warnings    Warning[]
+  infos       Info[]
+  logs        Log[]
+  performance Performance[]
+  userActions UserAction[]
 
   @@unique([userId, url])
 }
@@ -54,7 +59,6 @@ model Error {
   site           TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
   fingerprint    String
   type           String
-  level          String
   message        String
   stackTrace     String?
   fileName       String?
@@ -67,18 +71,76 @@ model Error {
   lastSeenAt     DateTime    @default(now())
   lastInstanceId String?
 
+  @@unique([siteId, fingerprint])
   @@index([siteId])
-  @@index([fingerprint])
+  @@index([lastInstanceId])
   @@index([lastSeenAt])
 }
 
-model Event {
-  id        String   @id @default(uuid())
-  type      String
-  payload   Json
-  timestamp DateTime
-  createdAt DateTime @default(now())
+model Warning {
+  id          Int         @id @default(autoincrement())
+  siteId      Int
+  site        TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  fingerprint String
+  message     String
+  stackTrace  String?
+  url         String
+  count       Int         @default(1)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
 
-  @@index([type])
-  @@index([timestamp])
+  @@unique([siteId, fingerprint])
+  @@index([siteId])
+  @@index([lastSeenAt])
+}
+
+model Info {
+  id          Int         @id @default(autoincrement())
+  siteId      Int
+  site        TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  message     String
+  url         String
+  count       Int         @default(1)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+
+  @@index([siteId])
+}
+
+model Log {
+  id          Int         @id @default(autoincrement())
+  siteId      Int
+  site        TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  message     String
+  url         String
+  count       Int         @default(1)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+
+  @@index([siteId])
+}
+
+model Performance {
+  id         Int         @id @default(autoincrement())
+  siteId     Int
+  site       TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  metricType String
+  metricName String
+  value      Float
+  url        String
+  createdAt  DateTime    @default(now())
+
+  @@index([siteId])
+}
+
+model UserAction {
+  id         Int         @id @default(autoincrement())
+  siteId     Int
+  site       TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  actionType String
+  details    Json
+  url        String
+  createdAt  DateTime    @default(now())
+
+  @@index([siteId])
 }
