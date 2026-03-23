@@ -35,20 +35,22 @@ model ApiKey {
 }
 
 model TrackedSite {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  url         String
-  urlPattern  String?
-  name        String?
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  errors      Error[]
-  warnings    Warning[]
-  infos       Info[]
-  logs        Log[]
-  performance Performance[]
-  userActions UserAction[]
+  id              Int              @id @default(autoincrement())
+  userId          Int
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url             String
+  urlPattern      String?
+  name            String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  errors          Error[]
+  warnings        Warning[]
+  infos           Info[]
+  logs            Log[]
+  performance     Performance[]
+  userActions     UserAction[]
+  networkRequests NetworkRequest[]
+  securityEvents  SecurityEvent[]
 
   @@unique([userId, url])
 }
@@ -127,10 +129,13 @@ model Performance {
   metricType String
   metricName String
   value      Float
+  rating     String?
+  browser    String?
   url        String
   createdAt  DateTime    @default(now())
 
   @@index([siteId])
+  @@index([metricName])
 }
 
 model UserAction {
@@ -138,9 +143,49 @@ model UserAction {
   siteId     Int
   site       TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
   actionType String
-  details    Json
+  details    Json?
+  element    String?
+  value      String?
   url        String
   createdAt  DateTime    @default(now())
+
+  @@index([siteId])
+  @@index([actionType])
+}
+
+model NetworkRequest {
+  id          Int         @id @default(autoincrement())
+  siteId      Int
+  site        TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  method      String
+  requestUrl  String
+  pageUrl     String
+  status      Int?
+  duration    Int?
+  failed      Boolean     @default(false)
+  source      String
+  browser     String?
+  count       Int         @default(1)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+
+  @@unique([siteId, requestUrl, method, pageUrl, source])
+  @@index([siteId])
+  @@index([failed])
+  @@index([duration])
+}
+
+model SecurityEvent {
+  id          Int         @id @default(autoincrement())
+  siteId      Int
+  site        TrackedSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  type        String
+  directive   String?
+  blockedURI  String?
+  url         String
+  count       Int         @default(1)
+  firstSeenAt DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
 
   @@index([siteId])
 }
