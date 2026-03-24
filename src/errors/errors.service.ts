@@ -24,7 +24,7 @@ export class ErrorsService {
 		let newErrorsCount = 0
 		let groupedErrorsCount = 0
 
-		for (const error of dto.errors) {
+		for (const error of dto.events) {
 			const urlObj = new URL(error.url)
 			const siteUrl =
 				`${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`.slice(0, 500)
@@ -98,7 +98,7 @@ export class ErrorsService {
 		}
 
 		return {
-			received: dto.errors.length,
+			received: dto.events.length,
 			new: newErrorsCount,
 			grouped: groupedErrorsCount
 		}

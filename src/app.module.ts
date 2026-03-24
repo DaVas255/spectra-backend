@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module'
 import { ApiKeyModule } from './api-key/api-key.module'
 import { TrackedSiteModule } from './tracked-site/tracked-site.module'
 import { ErrorsModule } from './errors/errors.module'
+import { ConsoleLogsModule } from './console-logs/console-logs.module'
 
 @Module({
 	imports: [
@@ -11,7 +12,8 @@ import { ErrorsModule } from './errors/errors.module'
 		AuthModule,
 		ApiKeyModule,
 		TrackedSiteModule,
-		ErrorsModule
+		ErrorsModule,
+		ConsoleLogsModule
 	]
 })
 export class AppModule {}

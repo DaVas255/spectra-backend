@@ -63,5 +63,5 @@ export class CreateErrorDto {
 	@IsArray()
 	@ValidateNested({ each: true })
 	@Type(() => SingleErrorDto)
-	errors: SingleErrorDto[]
+	events: SingleErrorDto[]
 }
